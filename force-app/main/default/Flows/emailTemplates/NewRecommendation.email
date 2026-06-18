@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>New AI Recommendation</title>
+<style>
+  * { margin:0;padding:0;box-sizing:border-box; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f4f6f9;color:#111; }
+  .wrapper { max-width:600px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08); }
+  .hero { background:linear-gradient(135deg,#0ea5e9,#6366f1);padding:36px 32px;text-align:center; }
+  .hero-badge { display:inline-block;background:rgba(255,255,255,0.25);color:#fff;font-size:11px;font-weight:700;letter-spacing:0.1em;padding:4px 14px;border-radius:20px;margin-bottom:14px; }
+  .hero-title { font-size:28px;font-weight:800;color:#fff;margin-bottom:8px;text-shadow:0 2px 8px rgba(0,0,0,0.1); }
+  .hero-sub   { font-size:14px;color:rgba(255,255,255,0.85); }
+  .hero-ring  { margin:20px auto 0;width:100px;height:100px;position:relative; }
+  .ring-text  { position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center; }
+  .ring-num   { font-size:24px;font-weight:800;color:#fff;line-height:1; }
+  .ring-lbl   { font-size:11px;color:rgba(255,255,255,0.75);font-weight:600; }
+
+  .body       { padding:32px; }
+  .greeting   { font-size:18px;font-weight:700;color:#111;margin-bottom:6px; }
+  .intro      { font-size:14px;color:#555;line-height:1.6;margin-bottom:24px; }
+
+  .product-card { background:#f8f9ff;border-radius:14px;padding:20px;border:1px solid #e8eaf0;margin-bottom:24px; }
+  .pc-header  { display:flex;align-items:center;gap:14px;margin-bottom:16px; }
+  .pc-icon    { width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#bae6fd,#0ea5e9);display:flex;align-items:center;justify-content:center;font-size:22px; }
+  .pc-name    { font-size:18px;font-weight:800;color:#111; }
+  .pc-cat     { font-size:11px;font-weight:700;color:#0ea5e9;background:#e0f2fe;padding:2px 8px;border-radius:6px;display:inline-block;margin-top:3px; }
+
+  .stats-row  { display:flex;gap:12px;margin-bottom:16px; }
+  .stat-box   { flex:1;text-align:center;background:#fff;border-radius:10px;padding:12px;border:1px solid #e8eaf0; }
+  .stat-num   { font-size:20px;font-weight:800;color:#0ea5e9;line-height:1; }
+  .stat-lbl   { font-size:10px;color:#999;font-weight:600;margin-top:3px;letter-spacing:0.04em; }
+
+  .conf-wrap  { margin-bottom:16px; }
+  .conf-label { display:flex;justify-content:space-between;margin-bottom:6px; }
+  .conf-key   { font-size:12px;font-weight:600;color:#888; }
+  .conf-val   { font-size:12px;font-weight:800;color:#0ea5e9; }
+  .conf-bar   { height:10px;background:#e8eaf0;border-radius:5px;overflow:hidden; }
+  .conf-fill  { height:100%;border-radius:5px;background:linear-gradient(90deg,#0ea5e9,#6366f1); }
+
+  .insight-box { background:linear-gradient(135deg,#eff6ff,#e0e7ff);border-radius:12px;padding:16px;border:1px solid #c7d2fe;margin-bottom:24px; }
+  .ib-title   { font-size:13px;font-weight:700;color:#3730a3;margin-bottom:6px; }
+  .ib-text    { font-size:12px;color:#4338ca;line-height:1.6; }
+
+  .cta-btn    { display:block;text-align:center;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;font-size:14px;font-weight:700;padding:14px 32px;border-radius:12px;text-decoration:none;margin:0 auto 24px;max-width:280px; }
+
+  .model-row  { display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px; }
+  .model-pill { font-size:10px;font-weight:700;padding:4px 12px;border-radius:10px;background:#f0f9ff;color:#0369a1;border:1px solid #bae6fd; }
+
+  .footer     { background:#f8f9ff;padding:24px 32px;text-align:center;border-top:1px solid #f0f0f0; }
+  .footer-logo{ font-size:16px;font-weight:800;color:#0ea5e9;margin-bottom:6px; }
+  .footer-sub { font-size:11px;color:#bbb;line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">🤖 AI RECOMMENDATION ENGINE</div>
+    <div class="hero-title">New Product Recommendation!</div>
+    <div class="hero-sub">Our SVD model found a perfect match for you</div>
+    <div class="hero-ring">
+      <svg viewBox="0 0 100 100" width="100" height="100" style="transform:rotate(-90deg);">
+        <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="10"/>
+        <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="10" stroke-linecap="round" stroke-dasharray="{!ROUND(Recommendation__c.Predicted_Rating__c / 5 * 251.2, 0)} 251.2"/>
+      </svg>
+      <div class="ring-text">
+        <div class="ring-num">{!Recommendation__c.Predicted_Rating__c}</div>
+        <div class="ring-lbl">/ 5.0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="body">
+    <div class="greeting">Hello, {!Recommendation__c.Customer__r.Name}! 👋</div>
+    <div class="intro">
+      Our AI-powered SVD Collaborative Filtering model has analysed your interaction history
+      and found a highly relevant product recommendation just for you.
+    </div>
+
+    <!-- Product card -->
+    <div class="product-card">
+      <div class="pc-header">
+        <div class="pc-icon">🛍️</div>
+        <div>
+          <div class="pc-name">{!Recommendation__c.Product__r.Name}</div>
+          <span class="pc-cat">{!Recommendation__c.Product__r.Category__c}</span>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-num">{!Recommendation__c.Predicted_Rating__c}</div>
+          <div class="stat-lbl">PREDICTED RATING</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" style="color:#10b981;">{!ROUND(Recommendation__c.Predicted_Rating__c / 5 * 100, 0)}%</div>
+          <div class="stat-lbl">CONFIDENCE</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" style="color:#8b5cf6;">SVD</div>
+          <div class="stat-lbl">AI MODEL</div>
+        </div>
+      </div>
+
+      <!-- Confidence bar -->
+      <div class="conf-wrap">
+        <div class="conf-label">
+          <span class="conf-key">Model Confidence Score</span>
+          <span class="conf-val">{!ROUND(Recommendation__c.Predicted_Rating__c / 5 * 100, 0)}%</span>
+        </div>
+        <div class="conf-bar">
+          <div class="conf-fill" style="width:{!ROUND(Recommendation__c.Predicted_Rating__c / 5 * 100, 0)}%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Insight box -->
+    <div class="insight-box">
+      <div class="ib-title">🧠 Why was this recommended?</div>
+      <div class="ib-text">
+        The SVD (Singular Value Decomposition) collaborative filtering model analysed patterns
+        from customers with similar behaviour to you. Based on <strong>50 latent feature dimensions</strong>
+        and <strong>20 training epochs</strong>, it predicted you would rate
+        <strong>{!Recommendation__c.Product__r.Name}</strong> at
+        <strong>{!Recommendation__c.Predicted_Rating__c} out of 5.0</strong>.
+      </div>
+    </div>
+
+    <!-- CTA Button -->
+    <a href="{!LEFT($Api.Partner_Server_URL_260, FIND('/services', $Api.Partner_Server_URL_260))}/{!Recommendation__c.Id}" class="cta-btn">
+      View Recommendation →
+    </a>
+
+    <!-- Model pills -->
+    <div class="model-row">
+      <span class="model-pill">🤖 SVD Algorithm</span>
+      <span class="model-pill">⚡ Collaborative Filtering</span>
+      <span class="model-pill">📊 50 Latent Factors</span>
+      <span class="model-pill">🎯 RMSE: 0.84</span>
+      <span class="model-pill">🐍 Python · Surprise Lib</span>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-logo">⚡ RecoEngine</div>
+    <div class="footer-sub">
+      Salesforce AI Recommendation System<br/>
+      Powered by SVD Collaborative Filtering · Final Year Project<br/>
+      <span style="color:#ddd;">This is an automated recommendation from your AI system.</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

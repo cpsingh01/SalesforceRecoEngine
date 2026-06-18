@@ -1,0 +1,229 @@
+<template>
+    <div class="ad-root">
+
+        <!-- ══ HERO ══════════════════════════════════════════════════════════ -->
+        <div style={heroStyle} onmouseenter={handleHeroEnter} onmouseleave={handleHeroLeave} onmousemove={handleHeroMove}>
+            <div class="hero-shine" lwc:ref="heroShine"></div>
+            <div class="hero-inner">
+                <div>
+                    <div class="hero-label">AI Recommendation System</div>
+                    <h1 class="hero-title">Analytics Dashboard</h1>
+                    <p class="hero-sub">Real-time insights · SVD Model · Collaborative Filtering</p>
+                </div>
+                <div class="hero-kpis">
+                    <div class="hkpi" style={hk0}>
+                        <div class="hkpi-num">{stats.totalCustomers}</div>
+                        <div class="hkpi-lbl">Customers</div>
+                    </div>
+                    <div class="hkpi" style={hk1}>
+                        <div class="hkpi-num">{stats.totalProducts}</div>
+                        <div class="hkpi-lbl">Products</div>
+                    </div>
+                    <div class="hkpi" style={hk2}>
+                        <div class="hkpi-num">{stats.totalRecs}</div>
+                        <div class="hkpi-lbl">Recommendations</div>
+                    </div>
+                    <div class="hkpi" style={hk3}>
+                        <div class="hkpi-num">{stats.avgRating}</div>
+                        <div class="hkpi-lbl">Avg Rating</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <template if:true={isLoading}>
+            <div style="text-align:center;padding:40px;">
+                <lightning-spinner alternative-text="Loading analytics..." size="medium"></lightning-spinner>
+                <p style="color:#999;margin-top:12px;">Loading analytics data…</p>
+            </div>
+        </template>
+
+        <template if:false={isLoading}>
+
+            <!-- ══ ROW 1: Top Products Bar + Category Pie ══════════════════════ -->
+            <div class="chart-row">
+
+                <!-- Top Products Bar Chart -->
+                <lightning-card title="Top Recommended Products" icon-name="utility:Einstein" class="chart-card">
+                    <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+                        <p class="chart-sub">Products with most recommendations from SVD model</p>
+                        <div class="bar-chart-wrap">
+                            <template for:each={topProducts} for:item="p">
+                                <div key={p.name} class="bar-row"
+                                     onmouseenter={handleBarEnter}
+                                     onmouseleave={handleBarLeave}>
+                                    <div class="bar-label" title={p.name}>{p.shortName}</div>
+                                    <div class="bar-track">
+                                        <div class="bar-fill" style={p.barStyle}></div>
+                                        <div class="bar-glow" style={p.glowStyle}></div>
+                                    </div>
+                                    <div class="bar-val" style={p.valStyle}>{p.count}</div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </lightning-card>
+
+                <!-- Category Pie Chart -->
+                <lightning-card title="Recommendations by Category" icon-name="utility:chart" class="chart-card">
+                    <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+                        <p class="chart-sub">Distribution across product categories</p>
+                        <div class="pie-wrap">
+                            <!-- SVG Pie -->
+                            <svg viewBox="0 0 200 200" width="180" height="180" class="pie-svg">
+                                <template for:each={pieSlices} for:item="sl">
+                                    <path key={sl.id}
+                                          d={sl.path}
+                                          fill={sl.color}
+                                          stroke="#fff"
+                                          stroke-width="2"
+                                          onmouseenter={handlePieEnter}
+                                          onmouseleave={handlePieLeave}
+                                          data-label={sl.label}
+                                          data-val={sl.count}
+                                          style="transition:opacity 0.2s;cursor:pointer;">
+                                    </path>
+                                </template>
+                                <!-- Centre hole -->
+                                <circle cx="100" cy="100" r="52" fill="#fff"></circle>
+                                <text x="100" y="96" text-anchor="middle" style="font-size:11px;font-weight:700;fill:#999;">Total</text>
+                                <text x="100" y="114" text-anchor="middle" style="font-size:18px;font-weight:800;" fill={themeC0}>{stats.totalRecs}</text>
+                            </svg>
+
+                            <!-- Legend -->
+                            <div class="pie-legend">
+                                <template for:each={pieSlices} for:item="sl">
+                                    <div key={sl.id} class="legend-row">
+                                        <div class="legend-dot" style={sl.dotStyle}></div>
+                                        <span class="legend-lbl">{sl.label}</span>
+                                        <span class="legend-val" style={sl.valStyle}>{sl.pct}%</span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </lightning-card>
+
+            </div>
+
+            <!-- ══ ROW 2: Most Active Customers Bar + Rating Distribution ═══════ -->
+            <div class="chart-row">
+
+                <!-- Most Active Customers -->
+                <lightning-card title="Most Active Customers" icon-name="utility:user" class="chart-card">
+                    <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+                        <p class="chart-sub">Customers with highest number of recommendations</p>
+                        <div class="bar-chart-wrap">
+                            <template for:each={topCustomers} for:item="c">
+                                <div key={c.name} class="bar-row"
+                                     onmouseenter={handleBarEnter}
+                                     onmouseleave={handleBarLeave}>
+                                    <div class="bar-avatar" style={c.avatarStyle}>{c.initials}</div>
+                                    <div class="bar-track">
+                                        <div class="bar-fill" style={c.barStyle}></div>
+                                    </div>
+                                    <div class="bar-val" style={c.valStyle}>{c.count}</div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </lightning-card>
+
+                <!-- Rating Distribution Bar -->
+                <lightning-card title="Rating Distribution by Band" icon-name="utility:chart" class="chart-card">
+                    <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+                        <p class="chart-sub">How predicted ratings spread across all recommendations</p>
+
+                        <!-- Vertical bar chart -->
+                        <div class="vbar-wrap">
+                            <template for:each={ratingBands} for:item="band">
+                                <div key={band.label} class="vbar-col"
+                                     onmouseenter={handleVbarEnter}
+                                     onmouseleave={handleVbarLeave}
+                                     data-label={band.label} data-val={band.count}>
+                                    <div class="vbar-count" style={band.countStyle}>{band.count}</div>
+                                    <div class="vbar-bar-wrap">
+                                        <div class="vbar-fill" style={band.vbarStyle}></div>
+                                    </div>
+                                    <div class="vbar-label">{band.label}</div>
+                                    <div class="vbar-pct" style={band.pctStyle}>{band.pct}%</div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </lightning-card>
+
+            </div>
+
+            <!-- ══ ROW 3: Model Performance Stats ════════════════════════════════ -->
+            <div class="slds-m-top_small">
+                <lightning-card title="SVD Model Performance Statistics" icon-name="utility:settings">
+                    <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+                        <div class="perf-grid">
+
+                            <!-- Accuracy Donut -->
+                            <div class="perf-donut-wrap" style={perf0Style}
+                                 onmouseenter={handleStatEnter} onmouseleave={handleStatLeave} onmousemove={handleStatMove}>
+                                <svg viewBox="0 0 120 120" width="110" height="110" style="transform:rotate(-90deg);">
+                                    <circle cx="60" cy="60" r="44" fill="none" stroke="#f3f4f6" stroke-width="16"></circle>
+                                    <circle cx="60" cy="60" r="44" fill="none" stroke={themeC0} stroke-width="16" stroke-linecap="round" stroke-dasharray={acc84arc}></circle>
+                                </svg>
+                                <div class="donut-centre">
+                                    <div class="donut-num" style={dn0}>84%</div>
+                                    <div class="donut-lbl">Model Accuracy</div>
+                                </div>
+                            </div>
+
+                            <!-- RMSE Donut -->
+                            <div class="perf-donut-wrap" style={perf1Style}
+                                 onmouseenter={handleStatEnter} onmouseleave={handleStatLeave} onmousemove={handleStatMove}>
+                                <svg viewBox="0 0 120 120" width="110" height="110" style="transform:rotate(-90deg);">
+                                    <circle cx="60" cy="60" r="44" fill="none" stroke="#f3f4f6" stroke-width="16"></circle>
+                                    <circle cx="60" cy="60" r="44" fill="none" stroke={themeC1} stroke-width="16" stroke-linecap="round" stroke-dasharray={rmseArc}></circle>
+                                </svg>
+                                <div class="donut-centre">
+                                    <div class="donut-num" style={dn1}>0.84</div>
+                                    <div class="donut-lbl">RMSE Score</div>
+                                </div>
+                            </div>
+
+                            <!-- Coverage Donut -->
+                            <div class="perf-donut-wrap" style={perf2Style}
+                                 onmouseenter={handleStatEnter} onmouseleave={handleStatLeave} onmousemove={handleStatMove}>
+                                <svg viewBox="0 0 120 120" width="110" height="110" style="transform:rotate(-90deg);">
+                                    <circle cx="60" cy="60" r="44" fill="none" stroke="#f3f4f6" stroke-width="16"></circle>
+                                    <circle cx="60" cy="60" r="44" fill="none" stroke={themeC2} stroke-width="16" stroke-linecap="round" stroke-dasharray={cov80arc}></circle>
+                                </svg>
+                                <div class="donut-centre">
+                                    <div class="donut-num" style={dn2}>80%</div>
+                                    <div class="donut-lbl">Train Split</div>
+                                </div>
+                            </div>
+
+                            <!-- Params table -->
+                            <div class="perf-params" style={perf3Style}
+                                 onmouseenter={handleStatEnter} onmouseleave={handleStatLeave} onmousemove={handleStatMove}>
+                                <div class="pp-title">Model Parameters</div>
+                                <template for:each={modelParams} for:item="p">
+                                    <div key={p.key} class="pp-row" style={p.rowStyle}>
+                                        <span class="pp-k">{p.key}</span>
+                                        <span class="pp-v" style={p.valStyle}>{p.val}</span>
+                                    </div>
+                                </template>
+                            </div>
+
+                        </div>
+                    </div>
+                </lightning-card>
+            </div>
+
+        </template>
+
+        <!-- Tooltip -->
+        <template if:true={showTooltip}>
+            <div class="tooltip-box" style={tooltipStyle}>{tooltipText}</div>
+        </template>
+
+    </div>
+</template>

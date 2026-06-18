@@ -1,0 +1,230 @@
+<template>
+    <div class="rec-root">
+
+        <!-- ══ HERO BANNER ══════════════════════════════════════════════════ -->
+        <div style={heroStyle}
+             onmouseenter={handleHeroEnter}
+             onmouseleave={handleHeroLeave}
+             onmousemove={handleHeroMove}>
+            <div class="hero-shine" lwc:ref="heroShine"></div>
+
+            <div class="hero-layout">
+
+                <!-- Score ring -->
+                <div class="score-ring-wrap">
+                    <svg viewBox="0 0 120 120" width="120" height="120" style="transform:rotate(-90deg);">
+                        <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="12"></circle>
+                        <circle cx="60" cy="60" r="50" fill="none"
+                            stroke="rgba(255,255,255,0.95)"
+                            stroke-width="12"
+                            stroke-linecap="round"
+                            stroke-dasharray={ratingArc}
+                            stroke-dashoffset="0">
+                        </circle>
+                    </svg>
+                    <div class="score-centre">
+                        <div class="score-big">{displayRating}</div>
+                        <div class="score-max">/ 5.0</div>
+                    </div>
+                </div>
+
+                <!-- Hero text -->
+                <div class="hero-text">
+                    <div class="rec-badge">AI Recommendation</div>
+                    <h1 class="rec-name">{record.Name}</h1>
+                    <div class="stars-hero">
+                        <template for:each={ratingStars} for:item="s">
+                            <span key={s.key} class={s.cssClass}></span>
+                        </template>
+                        <span class="conf-hero">{confidencePct}% confidence</span>
+                    </div>
+                    <div class="hero-pills">
+                        <span class="hero-pill" style={pill0S}>SVD Predicted</span>
+                        <span class="hero-pill" style={pill1S}>Collaborative Filter</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ══ LINK CARDS ═══════════════════════════════════════════════════ -->
+        <div class="link-strip">
+
+            <!-- Customer card -->
+            <div class="link-card" style={custCardStyle}
+                 onclick={handleOpenCustomer}
+                 onmouseenter={handleCardEnter}
+                 onmouseleave={handleCardLeave}
+                 onmousemove={handleCardMove}>
+                <div class="link-icon-wrap" style={custIconWrap}>
+                    <lightning-icon icon-name="utility:user" size="medium" style={icon0Style}></lightning-icon>
+                </div>
+                <div class="link-info">
+                    <div class="link-type">Customer</div>
+                    <div class="link-name">{record.CustomerName}</div>
+                    <div class="link-id">{record.Customer__c}</div>
+                </div>
+                <div class="link-arrow" style={arrow0Style}>↗</div>
+            </div>
+
+            <!-- Product card -->
+            <div class="link-card" style={prodCardStyle}
+                 onclick={handleOpenProduct}
+                 onmouseenter={handleCardEnter}
+                 onmouseleave={handleCardLeave}
+                 onmousemove={handleCardMove}>
+                <div class="link-icon-wrap" style={prodIconWrap}>
+                    <lightning-icon icon-name="utility:product" size="medium" style={icon1Style}></lightning-icon>
+                </div>
+                <div class="link-info">
+                    <div class="link-type">Product</div>
+                    <div class="link-name">{record.ProductName}</div>
+                    <div class="link-id">{record.ProductCategory}</div>
+                </div>
+                <div class="link-arrow" style={arrow1Style}>↗</div>
+            </div>
+
+            <!-- Predicted Rating card -->
+            <div class="link-card" style={ratingCardStyle}
+                 onclick={handleOpenRating}
+                 onmouseenter={handleCardEnter}
+                 onmouseleave={handleCardLeave}
+                 onmousemove={handleCardMove}>
+                <div class="link-icon-wrap" style={ratingIconWrap}>
+                    <lightning-icon icon-name="utility:einstein" size="medium" style={icon2Style}></lightning-icon>
+                </div>
+                <div class="link-info">
+                    <div class="link-type">Predicted Rating</div>
+                    <div class="link-name" style={ratingBigStyle}>{displayRating}</div>
+                    <div class="link-id">SVD output score</div>
+                </div>
+                <div class="link-arrow" style={arrow2Style}>★</div>
+            </div>
+
+        </div>
+
+        <!-- ══ DETAIL GRID ══════════════════════════════════════════════════ -->
+        <div class="detail-grid">
+
+            <!-- Recommendation Details -->
+            <lightning-card title="Recommendation Details" icon-name="utility:Einstein">
+                <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+
+                    <div class="field-row">
+                        <span class="f-lbl">Recommendation Name</span>
+                        <span class="f-val">{record.Name}</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="f-lbl">Predicted Rating</span>
+                        <span class="f-val" style={ratingBigStyle}>{displayRating} / 5.0</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="f-lbl">Model Confidence</span>
+                        <span class="f-val" style={ratingBigStyle}>{confidencePct}%</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="f-lbl">Customer</span>
+                        <span class="f-val">{record.CustomerName}</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="f-lbl">Product</span>
+                        <span class="f-val">{record.ProductName}</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="f-lbl">Product Category</span>
+                        <span class="f-val">
+                            <span style={catPillStyle}>{record.ProductCategory}</span>
+                        </span>
+                    </div>
+
+                    <!-- Confidence bar -->
+                    <div style="margin-top:16px;">
+                        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                            <span style="font-size:11px;font-weight:700;color:#555;">SVD Confidence Score</span>
+                            <span style={ratingBigStyle}>{confidencePct}%</span>
+                        </div>
+                        <div style="height:12px;background:#f0f0f0;border-radius:6px;overflow:hidden;">
+                            <div style={confBarStyle}></div>
+                        </div>
+                    </div>
+
+                    <!-- Rating visual -->
+                    <div style="margin-top:16px;display:flex;align-items:center;gap:8px;">
+                        <div class="stars-wrap">
+                            <template for:each={ratingStars} for:item="s">
+                                <span key={s.key} class={s.cssClass}></span>
+                            </template>
+                        </div>
+                        <span style={ratingBigStyle}>{displayRating}</span>
+                        <span style="font-size:12px;color:#bbb;">predicted by SVD algorithm</span>
+                    </div>
+
+                </div>
+            </lightning-card>
+
+            <!-- SVD Model Info -->
+            <lightning-card title="SVD Model Info" icon-name="utility:settings">
+                <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+
+                    <div class="model-grid">
+                        <div class="model-box" style={mBox0}>
+                            <div class="model-icon">
+                                <lightning-icon icon-name="utility:einstein" size="small" style={icon0Style}></lightning-icon>
+                            </div>
+                            <div class="model-k">Algorithm</div>
+                            <div class="model-v">SVD</div>
+                            <div class="model-sub">Singular Value Decomposition</div>
+                        </div>
+                        <div class="model-box" style={mBox1}>
+                            <div class="model-icon">
+                                <lightning-icon icon-name="utility:activity" size="small" style={icon1Style}></lightning-icon>
+                            </div>
+                            <div class="model-k">Approach</div>
+                            <div class="model-v">CF</div>
+                            <div class="model-sub">Collaborative Filtering</div>
+                        </div>
+                        <div class="model-box" style={mBox2}>
+                            <div class="model-icon">
+                                <lightning-icon icon-name="utility:chart" size="small" style={icon2Style}></lightning-icon>
+                            </div>
+                            <div class="model-k">Score Range</div>
+                            <div class="model-v">0–5.0</div>
+                            <div class="model-sub">Normalised rating</div>
+                        </div>
+                        <div class="model-box" style={mBox3}>
+                            <div class="model-icon">
+                                <lightning-icon icon-name="utility:check" size="small" style={icon3Style}></lightning-icon>
+                            </div>
+                            <div class="model-k">Confidence</div>
+                            <div class="model-v" style={ratingBigStyle}>{confidencePct}%</div>
+                            <div class="model-sub">This recommendation</div>
+                        </div>
+                    </div>
+
+                    <!-- What this means -->
+                    <div style={insightBoxStyle}>
+                        <div style="font-size:12px;font-weight:700;color:#111;margin-bottom:6px;">
+                            What this means
+                        </div>
+                        <div style="font-size:12px;color:#555;line-height:1.6;">
+                            The SVD model predicted a rating of <strong style={ratingBigStyle}>{displayRating}/5.0</strong>
+                            for <strong>{record.CustomerName}</strong> on <strong>{record.ProductName}</strong>.
+                            This means the customer has a <strong style={ratingBigStyle}>{confidencePct}% likelihood</strong>
+                            of being interested in this product based on collaborative patterns from similar users.
+                        </div>
+                    </div>
+
+                </div>
+            </lightning-card>
+
+        </div>
+
+        <!-- Loading -->
+        <template if:true={isLoading}>
+            <div style="text-align:center;padding:40px;">
+                <lightning-spinner alternative-text="Loading..." size="medium"></lightning-spinner>
+            </div>
+        </template>
+
+    </div>
+</template>

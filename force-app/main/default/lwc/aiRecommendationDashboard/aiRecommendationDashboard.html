@@ -1,0 +1,394 @@
+<template>
+    <div class="dash-root" lwc:ref="root">
+
+        <!-- ══ HEADER ══════════════════════════════════════════════════════ -->
+        <lightning-card>
+            <div slot="title">
+                <div class="slds-grid slds-grid_vertical-align-center" style="gap:10px;flex-wrap:wrap;">
+                    <div class="logo-mark" lwc:ref="logoMark">
+                        <lightning-icon icon-name="utility:einstein" size="x-small" class="logo-icon"></lightning-icon>
+                    </div>
+                    <span class="app-title">RecoEngine</span>
+                    <span class="app-sub">AI · SVD Recommendations</span>
+                    <span class="live-pill" lwc:ref="livePill">
+                        <span class="live-dot"></span>SVD Live
+                    </span>
+                </div>
+            </div>
+
+            <template if:true={customer}>
+                <div class="cust-strip slds-p-horizontal_medium slds-p-bottom_medium">
+                    <div class="avatar" lwc:ref="avatar">{customerInitials}</div>
+                    <div>
+                        <div class="cust-name">{customer.Name}</div>
+                        <div class="cust-meta">ID: {customer.External_Customer_ID__c} &nbsp;·&nbsp; {customer.Tier__c} tier</div>
+                    </div>
+                </div>
+            </template>
+
+            <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+                <lightning-layout multiple-rows>
+                    <lightning-layout-item size="6" medium-device-size="3" padding="around-x-small">
+                        <div class="stat-tile" lwc:ref="stat0" data-idx="0" onmouseenter={handle3DEnter} onmouseleave={handle3DLeave} onmousemove={handle3DMove}>
+                            <div class="stat-lbl">PREDICTIONS</div>
+                            <div class="stat-num" lwc:ref="statNum0">{stats.totalPredictions}</div>
+                            <div class="stat-sub">For this customer</div>
+                        </div>
+                    </lightning-layout-item>
+                    <lightning-layout-item size="6" medium-device-size="3" padding="around-x-small">
+                        <div class="stat-tile" lwc:ref="stat1" data-idx="1" onmouseenter={handle3DEnter} onmouseleave={handle3DLeave} onmousemove={handle3DMove}>
+                            <div class="stat-lbl">TOP RATING</div>
+                            <div class="stat-num" lwc:ref="statNum1">{stats.topRating}</div>
+                            <div class="stat-sub">Best SVD score</div>
+                        </div>
+                    </lightning-layout-item>
+                    <lightning-layout-item size="6" medium-device-size="3" padding="around-x-small">
+                        <div class="stat-tile" lwc:ref="stat2" data-idx="2" onmouseenter={handle3DEnter} onmouseleave={handle3DLeave} onmousemove={handle3DMove}>
+                            <div class="stat-lbl">SHOWN</div>
+                            <div class="stat-num" lwc:ref="statNum2">{stats.shownCount}</div>
+                            <div class="stat-sub">Above {ratingThreshold} threshold</div>
+                        </div>
+                    </lightning-layout-item>
+                    <lightning-layout-item size="6" medium-device-size="3" padding="around-x-small">
+                        <div class="stat-tile" lwc:ref="stat3" data-idx="3" onmouseenter={handle3DEnter} onmouseleave={handle3DLeave} onmousemove={handle3DMove}>
+                            <div class="stat-lbl">CONFIDENCE</div>
+                            <div class="stat-num" lwc:ref="statNum3">{stats.avgConfidence}%</div>
+                            <div class="stat-sub">Signal strength</div>
+                        </div>
+                    </lightning-layout-item>
+                </lightning-layout>
+            </div>
+        </lightning-card>
+
+        <!-- ══ PRODUCTS ═════════════════════════════════════════════════════ -->
+        <div class="slds-m-top_small">
+            <lightning-card title="Top Recommended Products" icon-name="utility:einstein">
+                <div slot="actions">
+                    <div class="filter-row">
+                        <template for:each={categoryFilters} for:item="f">
+                            <button key={f.value} class={f.cssClass} data-value={f.value} onclick={handleFilterClick}>{f.label}</button>
+                        </template>
+                    </div>
+                </div>
+
+                <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+                    <p class="sub-line slds-m-bottom_medium">Ranked by Predicted_Rating__c · Collaborative Filtering · SVD Algorithm</p>
+
+                    <template if:true={isLoading}>
+                        <div class="center-box">
+                            <lightning-spinner alternative-text="Loading..." size="medium"></lightning-spinner>
+                            <p class="grey slds-m-top_small">Generating personalised SVD predictions…</p>
+                        </div>
+                    </template>
+
+                    <template if:true={hasError}>
+                        <div class="err-box">
+                            <lightning-icon icon-name="utility:error" size="small" variant="error"></lightning-icon>
+                            <span class="slds-m-left_x-small">{errorMessage}</span>
+                        </div>
+                    </template>
+
+                    <template if:false={isLoading}>
+                        <lightning-layout multiple-rows>
+                            <template for:each={filteredRecommendations} for:item="rec">
+                                <lightning-layout-item key={rec.Id} size="12" medium-device-size="6" large-device-size="4" padding="around-x-small">
+
+                                    <!-- 3D perspective wrapper -->
+                                    <div class="card-3d-wrap"
+                                         data-id={rec.Id}
+                                         onmouseenter={handleCardMouseEnter}
+                                         onmouseleave={handleCardMouseLeave}
+                                         onmousemove={handleCardMouseMove}
+                                         onclick={handleCardSelect}>
+
+                                        <div class="prod-card" data-id={rec.Id}>
+
+                                            <!-- Image area -->
+                                            <div class="card-hdr" style={rec.hdrStyle}>
+                                                <div class="shimmer-layer"></div>
+                                                <div class="rank-circle" style={rec.rankCircleStyle}>{rec.rank}</div>
+                                                <!-- Try product image first, fall back to icon -->
+                                                <template if:true={rec.hasImage}>
+                                                    <img src={rec.productImage}
+                                                         alt={rec.productName}
+                                                         onerror={handleCardImgError}
+                                                         data-id={rec.Id}
+                                                         style="width:80px;height:80px;object-fit:contain;border-radius:12px;background:rgba(255,255,255,0.85);padding:6px;box-shadow:0 4px 12px rgba(0,0,0,0.08);" />
+                                                </template>
+                                                <template if:false={rec.hasImage}>
+                                                    <div class="icon-bubble" style={rec.iconBubbleStyle}>
+                                                        <lightning-icon icon-name={rec.categoryIcon} size="large" style={rec.iconColorStyle}></lightning-icon>
+                                                    </div>
+                                                </template>
+                                                <div class="ai-tag">AI Pick</div>
+                                            </div>
+
+                                            </div>
+
+                                            <div class="card-body">
+                                                <div class="cat-pill" style={rec.catPillStyle}>{rec.category}</div>
+                                                <div class="prod-name">{rec.productName}</div>
+
+                                                <div class="stars-row">
+                                                    <div class="stars">
+                                                        <template for:each={rec.stars} for:item="s">
+                                                            <span key={s.key} class={s.cssClass}></span>
+                                                        </template>
+                                                    </div>
+                                                    <span class="r-num">{rec.displayRating}</span>
+                                                    <span class="r-lbl">/ 5.0</span>
+                                                </div>
+
+                                                <div class="conf-row">
+                                                    <div class="conf-track">
+                                                        <div class="conf-fill" style={rec.confStyle}></div>
+                                                    </div>
+                                                    <span class="conf-pct">{rec.confidencePct}%</span>
+                                                </div>
+
+                                                <div class="card-foot">
+                                                    <span class="prod-id-lbl">{rec.Product_ID__c}</span>
+                                                    <button class="view-btn" style={rec.btnStyle}
+                                                        data-recid={rec.Id} data-prodid={rec.Product__c}
+                                                        onclick={handleViewProduct}>View →</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </lightning-layout-item>
+                            </template>
+                        </lightning-layout>
+
+                        <template if:true={isEmpty}>
+                            <div class="center-box">
+                                <lightning-icon icon-name="utility:search" size="medium"></lightning-icon>
+                                <p class="grey slds-m-top_small">No recommendations for this filter.</p>
+                            </div>
+                        </template>
+                    </template>
+                </div>
+            </lightning-card>
+        </div>
+
+        <!-- ══ BOTTOM PANELS ════════════════════════════════════════════════ -->
+        <div class="slds-m-top_small">
+            <lightning-layout multiple-rows>
+
+                <template if:true={selectedRec}>
+                    <lightning-layout-item size="12" medium-device-size="4" padding="around-x-small">
+                        <lightning-card title="Selected Product" icon-name="utility:product">
+                            <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+                                <div class="sel-hdr" style={selectedRec.hdrStyle}>
+                                    <div class="icon-bubble-lg" style={selectedRec.iconBubbleStyle}>
+                                        <lightning-icon icon-name={selectedRec.categoryIcon} size="medium" style={selectedRec.iconColorStyle}></lightning-icon>
+                                    </div>
+                                    <div>
+                                        <div class="sel-name">{selectedRec.productName}</div>
+                                        <div class="sel-cat" style={selectedRec.catTextStyle}>{selectedRec.category}</div>
+                                    </div>
+                                </div>
+                                <div class="score-row slds-m-top_small">
+                                    <div class="score-box" style={scoreBox0Style}>
+                                        <div class="score-val" style={scoreVal0Style}>{selectedRec.displayRating}</div>
+                                        <div class="score-lbl">Predicted</div>
+                                    </div>
+                                    <div class="score-box" style={scoreBox1Style}>
+                                        <div class="score-val" style={scoreVal1Style}>{selectedRec.confidencePct}%</div>
+                                        <div class="score-lbl">Confidence</div>
+                                    </div>
+                                    <div class="score-box" style={scoreBox2Style}>
+                                        <div class="score-val" style={scoreVal2Style}>#{selectedRec.rank}</div>
+                                        <div class="score-lbl">Rank</div>
+                                    </div>
+                                </div>
+                                <div class="act-row slds-m-top_small">
+                                    <lightning-button label="Open Product" variant="brand" data-prodid={selectedRec.Product__c} onclick={handleViewProduct} class="act-full"></lightning-button>
+                                    <lightning-button label="Log Interaction" variant="neutral" onclick={handleLogInteraction} class="act-full"></lightning-button>
+                                </div>
+                            </div>
+                        </lightning-card>
+                    </lightning-layout-item>
+                </template>
+
+                <lightning-layout-item size="12" medium-device-size="4" padding="around-x-small">
+                    <lightning-card title="SVD Model Parameters" icon-name="utility:settings">
+                        <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+                            <div class="algo-pill" style={algoPillStyle}>Singular Value Decomposition</div>
+                            <lightning-layout multiple-rows class="slds-m-top_small">
+                                <lightning-layout-item size="6" padding="around-xx-small">
+                                    <div class="param-box" style={param0Style}>
+                                        <div class="param-k">Latent Factors</div>
+                                        <div class="param-v">{modelParams.latentFactors}</div>
+                                        <div class="param-hint">Hidden dimensions</div>
+                                    </div>
+                                </lightning-layout-item>
+                                <lightning-layout-item size="6" padding="around-xx-small">
+                                    <div class="param-box" style={param1Style}>
+                                        <div class="param-k">Epochs</div>
+                                        <div class="param-v">{modelParams.epochs}</div>
+                                        <div class="param-hint">Training iterations</div>
+                                    </div>
+                                </lightning-layout-item>
+                                <lightning-layout-item size="6" padding="around-xx-small">
+                                    <div class="param-box" style={param2Style}>
+                                        <div class="param-k">Train Split</div>
+                                        <div class="param-v">{modelParams.trainSplit}</div>
+                                        <div class="param-hint">Data for training</div>
+                                    </div>
+                                </lightning-layout-item>
+                                <lightning-layout-item size="6" padding="around-xx-small">
+                                    <div class="param-box" style={param3Style}>
+                                        <div class="param-k">RMSE</div>
+                                        <div class="param-v">{modelParams.rmse}</div>
+                                        <div class="param-hint">Prediction error</div>
+                                    </div>
+                                </lightning-layout-item>
+                            </lightning-layout>
+                        </div>
+                    </lightning-card>
+                </lightning-layout-item>
+
+                <lightning-layout-item size="12" medium-device-size="4" padding="around-x-small">
+                    <lightning-card title="Rating Distribution" icon-name="utility:chart">
+                        <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+
+                            <div style="border-radius:16px;padding:16px;border:1px solid rgba(0,0,0,0.07);background:#fff;position:relative;overflow:hidden;transition:transform 0.3s,box-shadow 0.3s;"
+                                 onmouseenter={handleDistEnter}
+                                 onmouseleave={handleDistLeave}
+                                 onmousemove={handleDistShine}
+                                 lwc:ref="distCard">
+
+                                <!-- Shine sweep -->
+                                <div style="position:absolute;top:0;left:-100%;width:50%;height:100%;background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,0.5) 50%,transparent 70%);pointer-events:none;z-index:10;border-radius:inherit;transition:left 0s;"
+                                     lwc:ref="distShine"></div>
+
+                                <!-- KPI row -->
+                                <div style="display:flex;gap:6px;margin-bottom:14px;">
+                                    <div style={distKpi0Style}>
+                                        <div style={distKpiVal0Style}>{stats.totalPredictions}</div>
+                                        <div style="font-size:9px;color:#aaa;font-weight:600;">Total</div>
+                                    </div>
+                                    <div style={distKpi1Style}>
+                                        <div style={distKpiVal1Style}>{stats.topRating}</div>
+                                        <div style="font-size:9px;color:#aaa;font-weight:600;">Top Score</div>
+                                    </div>
+                                    <div style={distKpi2Style}>
+                                        <div style={distKpiVal2Style}>{stats.avgConfidence}%</div>
+                                        <div style="font-size:9px;color:#aaa;font-weight:600;">Avg Conf.</div>
+                                    </div>
+                                </div>
+
+                                <!-- SVG Pie chart + legend side by side -->
+                                <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+
+                                    <!-- SVG donut pie -->
+                                    <div style="flex-shrink:0;position:relative;width:110px;height:110px;">
+                                        <svg viewBox="0 0 110 110" width="110" height="110" style="transform:rotate(-90deg);">
+                                            <template for:each={pieSlices} for:item="sl">
+                                                <circle key={sl.id}
+                                                    cx="55" cy="55" r="38"
+                                                    fill="none"
+                                                    stroke={sl.color}
+                                                    stroke-width="18"
+                                                    stroke-dasharray={sl.dash}
+                                                    stroke-dashoffset={sl.offset}
+                                                    style="transition:stroke-dasharray 1s ease,opacity 0.2s;"
+                                                    onmouseenter={handleSliceHover}
+                                                    onmouseleave={handleSliceLeave}
+                                                    data-label={sl.label}>
+                                                </circle>
+                                            </template>
+                                            <!-- Centre hole -->
+                                            <circle cx="55" cy="55" r="26" fill="#fff"></circle>
+                                        </svg>
+                                        <!-- Centre label -->
+                                        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">
+                                            <div style={pieCountStyle}>{pieCentreCount}</div>
+                                            <div style="font-size:9px;color:#bbb;font-weight:600;line-height:1.2;">{pieCentreLabel}</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Legend -->
+                                    <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+                                        <template for:each={ratingDistribution} for:item="band">
+                                            <div key={band.label} style="display:flex;align-items:center;gap:6px;">
+                                                <div style={band.legendDotStyle}></div>
+                                                <span style="font-size:10px;color:#666;font-weight:600;flex:1;">{band.label}</span>
+                                                <span style={band.inlineCntStyle}>{band.count}</span>
+                                                <span style="font-size:10px;color:#bbb;font-weight:600;min-width:26px;text-align:right;">{band.pct}%</span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Horizontal bars -->
+                                <div style="font-size:9px;font-weight:700;letter-spacing:0.08em;color:#bbb;margin-bottom:8px;">RATING SPREAD</div>
+                                <template for:each={ratingDistribution} for:item="band">
+                                    <div key={band.label} style="margin-bottom:8px;">
+                                        <div style="height:10px;background:#f3f4f6;border-radius:5px;overflow:hidden;">
+                                            <div style={band.inlineBarStyle}></div>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <!-- Tech pills -->
+                                <div style="display:flex;gap:4px;margin-top:12px;padding-top:10px;border-top:1px solid #f0f0f0;flex-wrap:wrap;">
+                                    <div style={techPillStyle}>
+                                        <lightning-icon icon-name="utility:einstein" size="xx-small" style="--lwc-colorTextIconDefault:#bbb;"></lightning-icon>
+                                        <span style="margin-left:4px;">SVD · {modelParams.latentFactors}f</span>
+                                    </div>
+                                    <div style={techPillStyle}>
+                                        <lightning-icon icon-name="utility:activity" size="xx-small" style="--lwc-colorTextIconDefault:#bbb;"></lightning-icon>
+                                        <span style="margin-left:4px;">RMSE {modelParams.rmse}</span>
+                                    </div>
+                                    <div style={techPillStyle}>
+                                        <lightning-icon icon-name="utility:rotate" size="xx-small" style="--lwc-colorTextIconDefault:#bbb;"></lightning-icon>
+                                        <span style="margin-left:4px;">{modelParams.epochs} epochs</span>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </lightning-card>
+                </lightning-layout-item>
+
+                <lightning-layout-item size="12" padding="around-x-small">
+                    <lightning-card title="AI Insights — Why These Products?" icon-name="utility:knowledge_base">
+                        <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+                            <lightning-layout multiple-rows>
+                                <template for:each={insights} for:item="insight">
+                                    <lightning-layout-item key={insight.id} size="12" medium-device-size="4" padding="around-x-small">
+                                        <div class="insight-card"
+                                             style={insight.cardStyle}
+                                             onmouseenter={handle3DEnter}
+                                             onmouseleave={handle3DLeave}
+                                             onmousemove={handle3DMove}>
+                                            <div class="insight-icon-wrap" style={insight.iconWrapStyle}>
+                                                <lightning-icon icon-name={insight.icon} size="small" style={insight.iconStyle}></lightning-icon>
+                                            </div>
+                                            <div class="insight-title">{insight.title}</div>
+                                            <div class="insight-body">{insight.body}</div>
+                                            <div class="insight-tag" style={insight.tagStyle}>{insight.tag}</div>
+                                        </div>
+                                    </lightning-layout-item>
+                                </template>
+                            </lightning-layout>
+                        </div>
+                    </lightning-card>
+                </lightning-layout-item>
+
+            </lightning-layout>
+        </div>
+
+        <template if:true={showToast}>
+            <div class="toast-wrap">
+                <div class="toast" style={toastStyle}>
+                    <lightning-icon icon-name={toastIcon} size="x-small" variant="inverse"></lightning-icon>
+                    <span class="toast-msg">{toastMessage}</span>
+                </div>
+            </div>
+        </template>
+
+    </div>
+</template>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>65.0</apiVersion>
+    <isExposed>true</isExposed>
+
+    <targets>
+        <target>lightning__RecordPage</target>
+        <target>lightning__AppPage</target>
+        <target>lightning__HomePage</target>
+    </targets>
+
+    <targetConfigs>
+        <!-- Customer__c record page config -->
+        <targetConfig targets="lightning__RecordPage">
+            <objects>
+                <object>Customer__c</object>
+            </objects>
+            <property
+                name="ratingThreshold"
+                type="Integer"
+                label="Predicted Rating Threshold"
+                description="Minimum Predicted_Rating__c to show a recommendation (1–5)."
+                default="4"
+                min="1"
+                max="5"
+            />
+            <property
+                name="maxRecommendations"
+                type="Integer"
+                label="Max Recommendations"
+                description="Maximum number of Recommendation__c records to display."
+                default="6"
+                min="1"
+                max="20"
+            />
+            <property
+                name="modelLatentFactors"
+                type="Integer"
+                label="SVD Latent Factors"
+                description="Number of latent factors used in the SVD model."
+                default="50"
+            />
+            <property
+                name="modelEpochs"
+                type="Integer"
+                label="SVD Training Epochs"
+                default="20"
+            />
+            <property
+                name="modelTrainSplit"
+                type="String"
+                label="Train / Test Split"
+                default="80%"
+            />
+            <property
+                name="modelRmse"
+                type="String"
+                label="Model RMSE"
+                description="Root Mean Square Error of the trained SVD model."
+                default="0.84"
+            />
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>

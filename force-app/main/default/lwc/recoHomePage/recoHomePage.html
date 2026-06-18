@@ -1,0 +1,296 @@
+<template>
+    <div class="home-root">
+
+        <!-- ══ HERO WELCOME ══════════════════════════════════════════════════ -->
+        <div style={heroStyle} onmouseenter={handleHeroEnter} onmouseleave={handleHeroLeave} onmousemove={handleHeroMove}>
+            <div class="hero-shine" lwc:ref="heroShine"></div>
+            <div class="hero-inner">
+                <div class="hero-left">
+                    <div class="welcome-label">Salesforce AI Recommendation System</div>
+                    <h1 class="hero-title">Welcome back! 👋</h1>
+                    <p class="hero-sub">SVD Collaborative Filtering · Machine Learning · Real-time Predictions</p>
+                    <div class="hero-pills">
+                        <span class="hero-pill" style={pill0S}>🤖 SVD Model Active</span>
+                        <span class="hero-pill" style={pill1S}>⚡ Live Predictions</span>
+                        <span class="hero-pill" style={pill2S}>🎯 {totalRecs} Recommendations</span>
+                    </div>
+                </div>
+                <div class="hero-right">
+                    <div class="hero-ring-wrap">
+                        <svg viewBox="0 0 140 140" width="140" height="140" style="transform:rotate(-90deg);">
+                            <circle cx="70" cy="70" r="56" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="14"></circle>
+                            <circle cx="70" cy="70" r="56" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="14"
+                                stroke-linecap="round" stroke-dasharray={accuracyArc} stroke-dashoffset="0">
+                            </circle>
+                        </svg>
+                        <div class="ring-centre">
+                            <div class="ring-num">84%</div>
+                            <div class="ring-lbl">Accuracy</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ QUICK STATS ═══════════════════════════════════════════════════ -->
+        <div class="stats-strip">
+            <div class="stat-card" style={sc0}
+                 onmouseenter={handleStatEnter} onmouseleave={handleStatLeave} onmousemove={handleStatMove}
+                 onclick={navToCustomers}>
+                <div class="stat-icon-wrap" style={si0}>
+                    <lightning-icon icon-name="utility:user" size="medium" style={ic0}></lightning-icon>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-num" style={sn0}>{totalCustomers}</div>
+                    <div class="stat-lbl">Total Customers</div>
+                    <div class="stat-sub">View all →</div>
+                </div>
+            </div>
+
+            <div class="stat-card" style={sc1}
+                 onmouseenter={handleStatEnter} onmouseleave={handleStatLeave} onmousemove={handleStatMove}
+                 onclick={navToProducts}>
+                <div class="stat-icon-wrap" style={si1}>
+                    <lightning-icon icon-name="utility:product" size="medium" style={ic1}></lightning-icon>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-num" style={sn1}>{totalProducts}</div>
+                    <div class="stat-lbl">Total Products</div>
+                    <div class="stat-sub">View all →</div>
+                </div>
+            </div>
+
+            <div class="stat-card" style={sc2}
+                 onmouseenter={handleStatEnter} onmouseleave={handleStatLeave} onmousemove={handleStatMove}
+                 onclick={navToRecommendations}>
+                <div class="stat-icon-wrap" style={si2}>
+                    <lightning-icon icon-name="utility:einstein" size="medium" style={ic2}></lightning-icon>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-num" style={sn2}>{totalRecs}</div>
+                    <div class="stat-lbl">Recommendations</div>
+                    <div class="stat-sub">SVD generated →</div>
+                </div>
+            </div>
+
+            <div class="stat-card" style={sc3}
+                 onmouseenter={handleStatEnter} onmouseleave={handleStatLeave} onmousemove={handleStatMove}>
+                <div class="stat-icon-wrap" style={si3}>
+                    <lightning-icon icon-name="utility:chart" size="medium" style={ic3}></lightning-icon>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-num" style={sn3}>{avgRating}</div>
+                    <div class="stat-lbl">Avg Predicted Rating</div>
+                    <div class="stat-sub">Across all users</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ MAIN GRID ═════════════════════════════════════════════════════ -->
+        <div class="main-grid">
+
+            <!-- Left: How it works -->
+            <lightning-card title="How the System Works" icon-name="utility:knowledge_base">
+                <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+                    <div class="flow-steps">
+
+                        <div class="flow-step" style={fStep0}>
+                            <div class="flow-num" style={sn0}>1</div>
+                            <div class="flow-icon" style={si0}>
+                                <lightning-icon icon-name="utility:database" size="small" style={ic0}></lightning-icon>
+                            </div>
+                            <div>
+                                <div class="flow-title">Data Collection</div>
+                                <div class="flow-body">Customer–product interaction data collected and stored in Recommendation__c object</div>
+                            </div>
+                        </div>
+
+                        <div class="flow-arrow" style={sn0}>↓</div>
+
+                        <div class="flow-step" style={fStep1}>
+                            <div class="flow-num" style={sn1}>2</div>
+                            <div class="flow-icon" style={si1}>
+                                <lightning-icon icon-name="utility:activity" size="small" style={ic1}></lightning-icon>
+                            </div>
+                            <div>
+                                <div class="flow-title">SVD Training (Python)</div>
+                                <div class="flow-body">Singular Value Decomposition model trained on ratings matrix with 50 latent factors</div>
+                            </div>
+                        </div>
+
+                        <div class="flow-arrow" style={sn1}>↓</div>
+
+                        <div class="flow-step" style={fStep2}>
+                            <div class="flow-num" style={sn2}>3</div>
+                            <div class="flow-icon" style={si2}>
+                                <lightning-icon icon-name="utility:upload" size="small" style={ic2}></lightning-icon>
+                            </div>
+                            <div>
+                                <div class="flow-title">CSV → Salesforce</div>
+                                <div class="flow-body">Predicted ratings exported as CSV and imported into Recommendation__c via Data Loader</div>
+                            </div>
+                        </div>
+
+                        <div class="flow-arrow" style={sn2}>↓</div>
+
+                        <div class="flow-step" style={fStep3}>
+                            <div class="flow-num" style={sn3}>4</div>
+                            <div class="flow-icon" style={si3}>
+                                <lightning-icon icon-name="utility:einstein" size="small" style={ic3}></lightning-icon>
+                            </div>
+                            <div>
+                                <div class="flow-title">LWC Dashboard</div>
+                                <div class="flow-body">Lightning Web Component displays personalised product recommendations on Customer record page</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </lightning-card>
+
+            <!-- Right: Quick Actions + Model Info -->
+            <div class="right-col">
+
+                <!-- Quick Actions -->
+                <lightning-card title="Quick Actions" icon-name="utility:fullfilled">
+                    <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+                        <div class="action-list">
+                            <div class="action-item" style={ac0} onclick={navToCustomers}
+                                 onmouseenter={handleActionEnter} onmouseleave={handleActionLeave}>
+                                <div class="action-icon" style={si0}>
+                                    <lightning-icon icon-name="utility:user" size="x-small" style={ic0}></lightning-icon>
+                                </div>
+                                <div class="action-text">
+                                    <div class="action-title">View All Customers</div>
+                                    <div class="action-sub">Browse {totalCustomers} customers</div>
+                                </div>
+                                <span class="action-arrow" style={sn0}>↗</span>
+                            </div>
+
+                            <div class="action-item" style={ac1} onclick={navToProducts}
+                                 onmouseenter={handleActionEnter} onmouseleave={handleActionLeave}>
+                                <div class="action-icon" style={si1}>
+                                    <lightning-icon icon-name="utility:product" size="x-small" style={ic1}></lightning-icon>
+                                </div>
+                                <div class="action-text">
+                                    <div class="action-title">Browse Products</div>
+                                    <div class="action-sub">Explore {totalProducts} products</div>
+                                </div>
+                                <span class="action-arrow" style={sn1}>↗</span>
+                            </div>
+
+                            <div class="action-item" style={ac2} onclick={navToRecommendations}
+                                 onmouseenter={handleActionEnter} onmouseleave={handleActionLeave}>
+                                <div class="action-icon" style={si2}>
+                                    <lightning-icon icon-name="utility:einstein" size="x-small" style={ic2}></lightning-icon>
+                                </div>
+                                <div class="action-text">
+                                    <div class="action-title">All Recommendations</div>
+                                    <div class="action-sub">{totalRecs} SVD predictions</div>
+                                </div>
+                                <span class="action-arrow" style={sn2}>↗</span>
+                            </div>
+                        </div>
+                    </div>
+                </lightning-card>
+
+                <!-- SVD Model Card -->
+                <lightning-card title="SVD Model Parameters" icon-name="utility:settings" class="slds-m-top_small">
+                    <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+                        <div class="model-params">
+                            <div class="mp-row" style={mp0}>
+                                <span class="mp-k">Algorithm</span>
+                                <span class="mp-v" style={sn0}>SVD</span>
+                            </div>
+                            <div class="mp-row" style={mp1}>
+                                <span class="mp-k">Approach</span>
+                                <span class="mp-v" style={sn1}>Collaborative Filtering</span>
+                            </div>
+                            <div class="mp-row" style={mp2}>
+                                <span class="mp-k">Latent Factors</span>
+                                <span class="mp-v" style={sn2}>50</span>
+                            </div>
+                            <div class="mp-row" style={mp3}>
+                                <span class="mp-k">Epochs</span>
+                                <span class="mp-v" style={sn3}>20</span>
+                            </div>
+                            <div class="mp-row" style={mp0}>
+                                <span class="mp-k">Train Split</span>
+                                <span class="mp-v" style={sn0}>80%</span>
+                            </div>
+                            <div class="mp-row" style={mp1}>
+                                <span class="mp-k">RMSE</span>
+                                <span class="mp-v" style={sn1}>0.84</span>
+                            </div>
+                            <div class="mp-row" style={mp2}>
+                                <span class="mp-k">Language</span>
+                                <span class="mp-v" style={sn2}>Python (Surprise lib)</span>
+                            </div>
+                            <div class="mp-row" style={mp3}>
+                                <span class="mp-k">Integration</span>
+                                <span class="mp-v" style={sn3}>CSV → Data Loader</span>
+                            </div>
+                        </div>
+                    </div>
+                </lightning-card>
+
+            </div>
+        </div>
+
+        <!-- ══ RECENT RECOMMENDATIONS ════════════════════════════════════════ -->
+        <div class="slds-m-top_small">
+            <lightning-card title="Recent Recommendations" icon-name="utility:einstein">
+                <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+                    <template if:true={isLoading}>
+                        <div style="text-align:center;padding:20px;">
+                            <lightning-spinner alternative-text="Loading..." size="small"></lightning-spinner>
+                        </div>
+                    </template>
+                    <template if:false={isLoading}>
+                        <div class="rec-table-wrap">
+                            <table class="rec-table">
+                                <thead>
+                                    <tr>
+                                        <th style={thS}>#</th>
+                                        <th style={thS}>Recommendation</th>
+                                        <th style={thS}>Customer</th>
+                                        <th style={thS}>Product</th>
+                                        <th style={thS}>Predicted Rating</th>
+                                        <th style={thS}>Confidence</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={recentRecs} for:item="rec">
+                                        <tr key={rec.Id} class="rec-row" onclick={handleOpenRec} data-id={rec.Id}>
+                                            <td class="rec-rank" style={rec.rankStyle}>{rec.rank}</td>
+                                            <td style="padding:10px 14px;font-weight:600;color:#111;">{rec.Name}</td>
+                                            <td style="padding:10px 14px;color:#555;">{rec.CustomerName}</td>
+                                            <td style="padding:10px 14px;color:#555;">{rec.ProductName}</td>
+                                            <td style="padding:10px 14px;">
+                                                <span style={rec.ratingStyle}>{rec.displayRating}</span>
+                                            </td>
+                                            <td style="padding:10px 14px;">
+                                                <div style="display:flex;align-items:center;gap:8px;">
+                                                    <div style="flex:1;height:6px;background:#f3f4f6;border-radius:3px;overflow:hidden;min-width:60px;">
+                                                        <div style={rec.confBarStyle}></div>
+                                                    </div>
+                                                    <span style={rec.confStyle}>{rec.confidencePct}%</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="text-align:center;margin-top:14px;">
+                            <lightning-button label="View All Recommendations →" variant="brand"
+                                onclick={navToRecommendations} style={newBtnStyle}>
+                            </lightning-button>
+                        </div>
+                    </template>
+                </div>
+            </lightning-card>
+        </div>
+
+    </div>
+</template>

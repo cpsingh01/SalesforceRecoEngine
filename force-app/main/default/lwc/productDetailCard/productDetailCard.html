@@ -1,0 +1,219 @@
+<template>
+    <div class="pdc-root">
+
+        <!-- ══ HERO ═════════════════════════════════════════════════════════ -->
+        <div style={heroStyle} onmouseenter={handleHeroEnter} onmouseleave={handleHeroLeave} onmousemove={handleHeroMove} lwc:ref="hero">
+            <div class="hero-shine" lwc:ref="heroShine"></div>
+            <div class="hero-content">
+
+              <!-- Image / icon frame with 3D tilt -->
+<div class="img-frame"
+     style={imgFrameStyle}
+     onmouseenter={handleImgEnter}
+     onmouseleave={handleImgLeave}
+     onmousemove={handleImgMove}
+     lwc:ref="imgFrame">
+
+    <img src={imageUrl}
+         alt={record.Name}
+         class="prod-img"
+         onerror={handleImgError}/>
+</div>
+
+
+                <!-- Hero text -->
+                <div class="hero-info">
+                    <span class="cat-badge" style={catBadgeStyle}>{record.Category__c}</span>
+                    <h1 class="prod-title">{record.Name}</h1>
+                    <div style="font-size:12px;font-family:monospace;margin-bottom:10px;{prodIdStyle}">ID: {record.Product_ID__c}</div>
+                    <template if:true={statsLoaded}>
+                        <div class="hero-stars-row">
+                            <div class="stars-wrap">
+                                <template for:each={avgStars} for:item="s">
+                                    <span key={s.key} class={s.cssClass}></span>
+                                </template>
+                            </div>
+                            <span class="rating-hero" style={heroRatingStyle}>{stats.avgRating}</span>
+                            <span class="rating-sub-hero">SVD avg</span>
+                        </div>
+                        <div class="hero-recs-line" style={heroRecsStyle}>
+                            Recommended to {stats.totalRecommendations} customers
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ STATS STRIP ══════════════════════════════════════════════════ -->
+        <template if:true={statsLoaded}>
+            <div class="stats-strip">
+                <div class="stat-card" style={stat0Style} onmouseenter={handleStatEnter} onmouseleave={handleStatLeave} onmousemove={handleStatMove}>
+                    <div class="stat-num" style={sv0}>{stats.totalRecommendations}</div>
+                    <div class="stat-lbl">Customers</div>
+                </div>
+                <div class="stat-card" style={stat1Style} onmouseenter={handleStatEnter} onmouseleave={handleStatLeave} onmousemove={handleStatMove}>
+                    <div class="stat-num" style={sv1}>{stats.topRating}</div>
+                    <div class="stat-lbl">Top Rating</div>
+                </div>
+                <div class="stat-card" style={stat2Style} onmouseenter={handleStatEnter} onmouseleave={handleStatLeave} onmousemove={handleStatMove}>
+                    <div class="stat-num" style={sv2}>{stats.avgRating}</div>
+                    <div class="stat-lbl">Avg Rating</div>
+                </div>
+                <div class="stat-card" style={stat3Style} onmouseenter={handleStatEnter} onmouseleave={handleStatLeave} onmousemove={handleStatMove}>
+                    <div class="stat-num" style={sv3}>{stats.confidence}%</div>
+                    <div class="stat-lbl">Confidence</div>
+                </div>
+            </div>
+        </template>
+
+        <!-- ══ TWO COLUMNS ══════════════════════════════════════════════════ -->
+        <div class="two-col">
+
+            <!-- Rating Analysis -->
+            <template if:true={statsLoaded}>
+                <lightning-card title="SVD Rating Analysis" icon-name="utility:einstein">
+                    <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+
+                        <!-- Donut + bars -->
+                        <div style="display:flex;align-items:center;gap:18px;margin-bottom:16px;">
+
+                            <!-- Donut chart -->
+                            <div style="position:relative;width:120px;height:120px;flex-shrink:0;">
+                                <svg viewBox="0 0 120 120" width="120" height="120" style="transform:rotate(-90deg);">
+                                    <circle cx="60" cy="60" r="44" fill="none" stroke="#f3f4f6" stroke-width="20"></circle>
+                                    <circle cx="60" cy="60" r="44" fill="none"
+                                        stroke={themeC0}
+                                        stroke-width="20"
+                                        stroke-linecap="round"
+                                        stroke-dasharray={arcDash}
+                                        stroke-dashoffset="0">
+                                    </circle>
+                                </svg>
+                                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">
+                                    <div style={donutNumStyle}>{stats.avgRating}</div>
+                                    <div style="font-size:9px;color:#bbb;font-weight:600;">/5.0 SVD</div>
+                                </div>
+                            </div>
+
+                            <!-- Breakdown bars -->
+                            <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+                                <div>
+                                    <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                                        <span style="font-size:10px;font-weight:600;color:#777;">Above 4.0</span>
+                                        <span style={bkV0}>{stats.ratingAbove4} users</span>
+                                    </div>
+                                    <div style="height:8px;background:#f3f4f6;border-radius:4px;overflow:hidden;">
+                                        <div style={above4Style}></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                                        <span style="font-size:10px;font-weight:600;color:#777;">Above 3.0</span>
+                                        <span style={bkV1}>{stats.ratingAbove3} users</span>
+                                    </div>
+                                    <div style="height:8px;background:#f3f4f6;border-radius:4px;overflow:hidden;">
+                                        <div style={above3Style}></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                                        <span style="font-size:10px;font-weight:600;color:#777;">Total</span>
+                                        <span style={bkV2}>{stats.totalRecommendations} users</span>
+                                    </div>
+                                    <div style="height:8px;background:#f3f4f6;border-radius:4px;overflow:hidden;">
+                                        <div style={totalFill}></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Top customer pill -->
+                        <div style={topCustStyle}>
+                            <lightning-icon icon-name="utility:user" size="x-small" style={iconColorStyle}></lightning-icon>
+                            <div style="margin-left:8px;">
+                                <div style="font-size:9px;color:#aaa;font-weight:600;letter-spacing:0.05em;">TOP RECOMMENDED CUSTOMER</div>
+                                <div style="font-size:14px;font-weight:700;color:#111;">{stats.topCustomer}</div>
+                            </div>
+                        </div>
+
+                        <!-- SVD model pills -->
+                        <div style="display:flex;gap:5px;margin-top:12px;flex-wrap:wrap;">
+                            <span style={pill0S}>SVD Algorithm</span>
+                            <span style={pill1S}>RMSE {modelRmse}</span>
+                            <span style={pill2S}>{modelFactors} Latent Factors</span>
+                        </div>
+
+                    </div>
+                </lightning-card>
+            </template>
+
+            <!-- Product Details -->
+            <lightning-card title="Product Details" icon-name="utility:product">
+                <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+
+                    <div class="field-row">
+                        <span class="f-lbl">Name</span>
+                        <span class="f-val">{record.Name}</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="f-lbl">Category</span>
+                        <span class="f-val"><span style={catInlineStyle}>{record.Category__c}</span></span>
+                    </div>
+                    <div class="field-row">
+                        <span class="f-lbl">Product ID</span>
+                        <span class="f-val f-mono">{record.Product_ID__c}</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="f-lbl">Image</span>
+                        <span class="f-val" style={imgStatusStyle}>{imageStatus}</span>
+                    </div>
+
+                    <template if:true={statsLoaded}>
+                        <div style={dividerStyle}></div>
+                        <div class="field-row">
+                            <span class="f-lbl">SVD Avg Rating</span>
+                            <span class="f-val" style={sv2}>{stats.avgRating} / 5.0</span>
+                        </div>
+                        <div class="field-row">
+                            <span class="f-lbl">Recommended To</span>
+                            <span class="f-val">{stats.totalRecommendations} customers</span>
+                        </div>
+                        <div class="field-row">
+                            <span class="f-lbl">Top Predicted</span>
+                            <span class="f-val" style={sv1}>{stats.topRating}</span>
+                        </div>
+                        <div class="field-row">
+                            <span class="f-lbl">Low Predicted</span>
+                            <span class="f-val">{stats.lowRating}</span>
+                        </div>
+
+                        <!-- Confidence bar -->
+                        <div style="margin-top:16px;padding:12px;background:#f8f9ff;border-radius:10px;border:1px solid #eef0f8;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                                <span style="font-size:11px;font-weight:700;color:#555;">Model Confidence Score</span>
+                                <span style={sv0}>{stats.confidence}%</span>
+                            </div>
+                            <div style="height:12px;background:#e9ecef;border-radius:6px;overflow:hidden;">
+                                <div style={confBarStyle}></div>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;margin-top:6px;">
+                                <span style="font-size:9px;color:#bbb;">0%</span>
+                                <span style="font-size:9px;color:#bbb;">100%</span>
+                            </div>
+                        </div>
+                    </template>
+
+                </div>
+            </lightning-card>
+
+        </div>
+
+        <!-- Loading spinner -->
+        <template if:true={isLoading}>
+            <div style="text-align:center;padding:30px;">
+                <lightning-spinner alternative-text="Loading..." size="medium"></lightning-spinner>
+            </div>
+        </template>
+
+    </div>
+</template>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EmailTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <available>true</available>
+    <description>Rich HTML email sent when a new AI recommendation is created for a customer</description>
+    <encodingKey>UTF-8</encodingKey>
+    <name>New AI Recommendation</name>
+    <relatedEntityType>Recommendation__c</relatedEntityType>
+    <style>none</style>
+    <subject>🤖 New AI Product Recommendation: {!Recommendation__c.Product__r.Name} — {!Recommendation__c.Predicted_Rating__c}/5.0</subject>
+    <textOnly>Hello {!Recommendation__c.Customer__r.Name}, Our AI model recommends {!Recommendation__c.Product__r.Name} with a predicted rating of {!Recommendation__c.Predicted_Rating__c}/5.0. View it here: {!LEFT($Api.Partner_Server_URL_260, FIND('/services', $Api.Partner_Server_URL_260))}/{!Recommendation__c.Id}</textOnly>
+    <type>custom</type>
+    <uiType>SFX</uiType>
+</EmailTemplate>

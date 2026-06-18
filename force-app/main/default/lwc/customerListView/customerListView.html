@@ -1,0 +1,180 @@
+<template>
+    <div class="cl-root">
+
+        <!-- ══ HEADER HERO ══════════════════════════════════════════════════ -->
+        <div style={heroStyle}>
+            <div class="hero-shine" lwc:ref="heroShine"></div>
+            <div class="hero-inner">
+                <div>
+                    <div class="hero-label">AI Recommendation System</div>
+                    <h1 class="hero-title">Customer Directory</h1>
+                    <div class="hero-sub">{totalCount} customers · SVD Collaborative Filtering Active</div>
+                </div>
+                <div class="hero-stats">
+                    <div class="h-stat" style={hStat0}>
+                        <div class="h-stat-num">{totalCount}</div>
+                        <div class="h-stat-lbl">Total Customers</div>
+                    </div>
+                    <div class="h-stat" style={hStat1}>
+                        <div class="h-stat-num">{shownCount}</div>
+                        <div class="h-stat-lbl">Shown</div>
+                    </div>
+                    <div class="h-stat" style={hStat2}>
+                        <div class="h-stat-num">
+                            <template if:true={searchQuery}>Filter</template>
+                            <template if:false={searchQuery}>All</template>
+                        </div>
+                        <div class="h-stat-lbl">View Mode</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ TOOLBAR ══════════════════════════════════════════════════════ -->
+        <div class="toolbar">
+            <!-- Search -->
+            <div class="search-wrap" style={searchWrapStyle}>
+                <lightning-icon icon-name="utility:search" size="x-small" style={searchIconStyle} class="search-icon"></lightning-icon>
+                <input type="text"
+                       class="search-input"
+                       placeholder="Search by name or ID…"
+                       value={searchQuery}
+                       oninput={handleSearch} />
+                <template if:true={searchQuery}>
+                    <button class="clear-btn" onclick={handleClearSearch} style={clearBtnStyle}>✕</button>
+                </template>
+            </div>
+
+            <!-- View toggle -->
+            <div class="view-toggle">
+                <button class={gridBtnClass} onclick={handleGridView} style={gridBtnStyle} title="Card view">
+                    <lightning-icon icon-name="utility:tile_card_list" size="x-small" style={toggleIconStyle}></lightning-icon>
+                </button>
+                <button class={listBtnClass} onclick={handleListView} style={listBtnStyle} title="Table view">
+                    <lightning-icon icon-name="utility:list" size="x-small" style={toggleIconStyle}></lightning-icon>
+                </button>
+            </div>
+
+            <!-- New button -->
+            <lightning-button label="+ New Customer" variant="brand" onclick={handleNew} style={newBtnStyle}></lightning-button>
+        </div>
+
+        <!-- ══ LOADING ══════════════════════════════════════════════════════ -->
+        <template if:true={isLoading}>
+            <div class="center-pad">
+                <lightning-spinner alternative-text="Loading..." size="medium"></lightning-spinner>
+                <p class="grey slds-m-top_small">Loading customers…</p>
+            </div>
+        </template>
+
+        <!-- ══ CARD GRID VIEW ═══════════════════════════════════════════════ -->
+        <template if:false={isLoading}>
+            <template if:true={isGridView}>
+                <div class="card-grid">
+                    <template for:each={filteredCustomers} for:item="cust">
+                        <div key={cust.Id}
+                             class="cust-card"
+                             onmouseenter={handleCardEnter}
+                             onmouseleave={handleCardLeave}
+                             onmousemove={handleCardMove}
+                             onclick={handleOpenCustomer}
+                             data-id={cust.Id}>
+
+                            <!-- Card header -->
+                            <div class="cust-card-hdr" style={cust.hdrStyle}>
+                                <div class="cust-avatar" style={cust.avatarStyle}>{cust.initials}</div>
+                                <div class="cust-rank-pill" style={cust.rankStyle}># {cust.rank}</div>
+                            </div>
+
+                            <!-- Card body -->
+                            <div class="cust-card-body">
+                                <div class="cust-name">{cust.Name}</div>
+                                <div class="cust-id" style={cust.idStyle}>{cust.External_Customer_ID__c}</div>
+
+                                <!-- Tier badge -->
+                                <template if:true={cust.Tier__c}>
+                                    <span class="tier-badge" style={cust.tierStyle}>{cust.Tier__c}</span>
+                                </template>
+
+                                <!-- Recommendation count bar -->
+                                <div class="rec-bar-wrap">
+                                    <div class="rec-bar-lbl">
+                                        <span style="font-size:10px;color:#999;">Recommendations</span>
+                                        <span style={cust.recCountStyle}>{cust.recCount}</span>
+                                    </div>
+                                    <div class="rec-bar-bg">
+                                        <div class="rec-bar-fill" style={cust.recBarStyle}></div>
+                                    </div>
+                                </div>
+
+                                <!-- Open button -->
+                                <button class="open-btn" style={cust.openBtnStyle}
+                                        data-id={cust.Id}
+                                        onclick={handleOpenCustomer}>
+                                    Open Record ↗
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            <!-- ══ TABLE VIEW ════════════════════════════════════════════════ -->
+            <template if:true={isListView}>
+                <div class="table-wrap">
+                    <table class="cust-table">
+                        <thead>
+                            <tr>
+                                <th style={thStyle}>#</th>
+                                <th style={thStyle}>Customer Name</th>
+                                <th style={thStyle}>External ID</th>
+                                <th style={thStyle}>Tier</th>
+                                <th style={thStyle}>Recommendations</th>
+                                <th style={thStyle}>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={filteredCustomers} for:item="cust">
+                                <tr key={cust.Id} class="table-row" onclick={handleOpenCustomer} data-id={cust.Id}>
+                                    <td class="td-rank" style={cust.tdRankStyle}>{cust.rank}</td>
+                                    <td class="td-name">
+                                        <div class="table-avatar" style={cust.avatarStyle}>{cust.initials}</div>
+                                        <span class="td-name-text">{cust.Name}</span>
+                                    </td>
+                                    <td class="td-id" style={cust.idStyle}>{cust.External_Customer_ID__c}</td>
+                                    <td>
+                                        <template if:true={cust.Tier__c}>
+                                            <span class="tier-badge" style={cust.tierStyle}>{cust.Tier__c}</span>
+                                        </template>
+                                        <template if:false={cust.Tier__c}>
+                                            <span style="color:#ddd;">—</span>
+                                        </template>
+                                    </td>
+                                    <td>
+                                        <div class="rec-bar-bg" style="width:80px;">
+                                            <div class="rec-bar-fill" style={cust.recBarStyle}></div>
+                                        </div>
+                                        <span style={cust.recCountStyle}> {cust.recCount}</span>
+                                    </td>
+                                    <td>
+                                        <button class="tbl-btn" style={cust.openBtnStyle} data-id={cust.Id} onclick={handleOpenCustomer}>Open ↗</button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </template>
+
+            <!-- Empty state -->
+            <template if:true={isEmpty}>
+                <div class="center-pad">
+                    <lightning-icon icon-name="utility:search" size="large"></lightning-icon>
+                    <p class="grey slds-m-top_small">No customers match "<strong>{searchQuery}</strong>"</p>
+                    <button onclick={handleClearSearch} style={clearBtnStyle}>Clear search</button>
+                </div>
+            </template>
+        </template>
+
+    </div>
+</template>

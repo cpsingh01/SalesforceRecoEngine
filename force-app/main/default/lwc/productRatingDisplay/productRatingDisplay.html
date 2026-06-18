@@ -1,0 +1,173 @@
+<template>
+    <div style="font-family:'Salesforce Sans',Arial,sans-serif;">
+
+        <!-- Loading -->
+        <template if:true={isLoading}>
+            <div style="text-align:center;padding:40px;">
+                <lightning-spinner alternative-text="Loading..." size="medium"></lightning-spinner>
+                <p style="color:#999;font-size:13px;margin-top:12px;">Loading AI recommendation data…</p>
+            </div>
+        </template>
+
+        <template if:false={isLoading}>
+
+            <!-- ══ PRODUCT HERO CARD ══════════════════════════════════════ -->
+            <lightning-card>
+                <div slot="title">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style={logoBgStyle}>
+                            <lightning-icon icon-name="utility:einstein" size="x-small" style="--lwc-colorTextIconDefault:#fff;"></lightning-icon>
+                        </div>
+                        <span style="font-size:16px;font-weight:800;color:#111;">AI Recommendation Score</span>
+                        <span style={livePillStyle}>
+                            <span style={liveDotStyle}></span>SVD Model
+                        </span>
+                    </div>
+                </div>
+
+                <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+
+                    <!-- Product image + info row -->
+                    <div style="display:flex;gap:20px;align-items:flex-start;margin-bottom:20px;">
+
+                        <!-- Product image with fallback -->
+                        <div style={productImgBgStyle} onmouseenter={handleImgEnter} onmouseleave={handleImgLeave}>
+                            <template if:true={hasImage}>
+                                <img src={product.Image_URL__c}
+                                     alt={product.Name}
+                                     onerror={handleImageError}
+                                     style="width:100%;height:100%;object-fit:cover;border-radius:16px;display:block;" />
+                            </template>
+                            <template if:false={hasImage}>
+                                <lightning-icon icon-name={categoryIcon} size="x-large" style={categoryIconStyle}></lightning-icon>
+                            </template>
+                            <!-- Category badge -->
+                            <div style={catBadgeStyle}>{product.Category__c}</div>
+                        </div>
+
+                        <!-- Info column -->
+                        <div style="flex:1;">
+                            <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;color:#aaa;margin-bottom:4px;">PRODUCT ID</div>
+                            <div style="font-size:13px;font-weight:700;color:#555;font-family:monospace;margin-bottom:12px;">{product.Product_ID__c}</div>
+
+                            <!-- Big rating display -->
+                            <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px;">
+                                <div style={bigRatingStyle}>{avgRating}</div>
+                                <div style="font-size:14px;color:#bbb;font-weight:600;">/ 5.0</div>
+                                <div style={ratingLabelStyle}>avg predicted</div>
+                            </div>
+
+                            <!-- Star row -->
+                            <div style="display:flex;gap:3px;margin-bottom:12px;">
+                                <template for:each={avgStars} for:item="s">
+                                    <span key={s.key} style={s.style}></span>
+                                </template>
+                            </div>
+
+                            <!-- Mini stat chips -->
+                            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                <div style={chip0Style}>
+                                    <div style={chipVal0Style}>{totalRecommendations}</div>
+                                    <div style="font-size:9px;color:#aaa;font-weight:600;">Customers Rec'd</div>
+                                </div>
+                                <div style={chip1Style}>
+                                    <div style={chipVal1Style}>{maxRating}</div>
+                                    <div style="font-size:9px;color:#aaa;font-weight:600;">Highest Score</div>
+                                </div>
+                                <div style={chip2Style}>
+                                    <div style={chipVal2Style}>{avgConfidence}%</div>
+                                    <div style="font-size:9px;color:#aaa;font-weight:600;">Avg Confidence</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── Rating bar chart per customer ── -->
+                    <template if:true={hasRatings}>
+                        <div style="font-size:9px;font-weight:700;letter-spacing:0.09em;color:#bbb;margin-bottom:10px;">PREDICTED RATINGS BY CUSTOMER</div>
+
+                        <template for:each={customerRatings} for:item="cr">
+                            <div key={cr.customerId}
+                                 style={cr.rowStyle}
+                                 onmouseenter={handleRowEnter}
+                                 onmouseleave={handleRowLeave}>
+                                <!-- Customer label -->
+                                <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;width:100px;">
+                                    <div style={cr.avatarStyle}>{cr.initials}</div>
+                                    <span style="font-size:11px;color:#666;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{cr.customerName}</span>
+                                </div>
+                                <!-- Bar -->
+                                <div style="flex:1;height:12px;background:#f3f4f6;border-radius:6px;overflow:hidden;">
+                                    <div style={cr.barStyle}></div>
+                                </div>
+                                <!-- Score -->
+                                <div style={cr.scoreStyle}>{cr.rating}</div>
+                                <!-- Stars mini -->
+                                <div style="display:flex;gap:1px;flex-shrink:0;">
+                                    <template for:each={cr.miniStars} for:item="s">
+                                        <span key={s.key} style={s.style}></span>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </template>
+
+                    <!-- Empty state -->
+                    <template if:false={hasRatings}>
+                        <div style="text-align:center;padding:30px;background:#f8f9ff;border-radius:12px;">
+                            <lightning-icon icon-name="utility:einstein" size="medium"></lightning-icon>
+                            <p style="color:#999;font-size:13px;margin-top:10px;">No SVD predictions found for this product yet.</p>
+                        </div>
+                    </template>
+                </div>
+            </lightning-card>
+
+            <!-- ══ INSIGHTS CARD ══════════════════════════════════════════ -->
+            <template if:true={hasRatings}>
+                <div style="margin-top:8px;">
+                    <lightning-card title="Product Intelligence" icon-name="utility:knowledge_base">
+                        <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+                            <lightning-layout multiple-rows>
+
+                                <lightning-layout-item size="12" medium-device-size="4" padding="around-x-small">
+                                    <div style={insightCard0Style} onmouseenter={handle3DEnter} onmouseleave={handle3DLeave} onmousemove={handle3DMove}>
+                                        <div style={insightIcon0Style}>
+                                            <lightning-icon icon-name="utility:trending" size="small" style={insightIconColor0}></lightning-icon>
+                                        </div>
+                                        <div style="font-size:13px;font-weight:800;color:#111;margin-bottom:6px;">Demand Rank</div>
+                                        <div style="font-size:11px;color:#555;line-height:1.6;">{insights.demandBody}</div>
+                                        <div style={insightTag0Style}>SVD Signal</div>
+                                    </div>
+                                </lightning-layout-item>
+
+                                <lightning-layout-item size="12" medium-device-size="4" padding="around-x-small">
+                                    <div style={insightCard1Style} onmouseenter={handle3DEnter} onmouseleave={handle3DLeave} onmousemove={handle3DMove}>
+                                        <div style={insightIcon1Style}>
+                                            <lightning-icon icon-name="utility:user" size="small" style={insightIconColor1}></lightning-icon>
+                                        </div>
+                                        <div style="font-size:13px;font-weight:800;color:#111;margin-bottom:6px;">Customer Reach</div>
+                                        <div style="font-size:11px;color:#555;line-height:1.6;">{insights.reachBody}</div>
+                                        <div style={insightTag1Style}>Collaborative Filter</div>
+                                    </div>
+                                </lightning-layout-item>
+
+                                <lightning-layout-item size="12" medium-device-size="4" padding="around-x-small">
+                                    <div style={insightCard2Style} onmouseenter={handle3DEnter} onmouseleave={handle3DLeave} onmousemove={handle3DMove}>
+                                        <div style={insightIcon2Style}>
+                                            <lightning-icon icon-name="utility:check" size="small" style={insightIconColor2}></lightning-icon>
+                                        </div>
+                                        <div style="font-size:13px;font-weight:800;color:#111;margin-bottom:6px;">Model Confidence</div>
+                                        <div style="font-size:11px;color:#555;line-height:1.6;">{insights.confidenceBody}</div>
+                                        <div style={insightTag2Style}>RMSE Quality</div>
+                                    </div>
+                                </lightning-layout-item>
+
+                            </lightning-layout>
+                        </div>
+                    </lightning-card>
+                </div>
+            </template>
+
+        </template>
+    </div>
+</template>
