@@ -1,5 +1,21 @@
 # SalesforceRecoEngine
 
+# Product Recommendation Using Machine Learning and Salesforce
+
+**Final Year Major Project**
+
+A recommendation system built using Salesforce CRM, Apex, Lightning Web Components (LWC), and Machine Learning (SVD Collaborative Filtering) to generate personalized product recommendations.
+
+### Technologies
+
+* Salesforce CRM
+* Apex
+* Lightning Web Components (LWC)
+* SOQL
+* Python
+* Machine Learning (SVD)
+
+
 ## Overview
 This project is a Product Recommendation System developed using Machine Learning and Salesforce CRM. The system analyzes customer-product interactions and generates personalized product recommendations.
 
